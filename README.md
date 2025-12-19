@@ -7,6 +7,7 @@ Django BM25 full-text search using PostgreSQL [pg_textsearch](https://github.com
 - **Simple API** - Just add a mixin and search with `Article.search("query")`
 - **BM25 ranking** - Industry-standard relevance scoring (same as Elasticsearch)
 - **No external services** - Uses PostgreSQL 17+ native search
+- **RAG-ready** - Use as the retrieval layer for Retrieval Augmented Generation
 
 ## Requirements
 
@@ -20,6 +21,24 @@ Django BM25 full-text search using PostgreSQL [pg_textsearch](https://github.com
 ```bash
 pip install django-hawkeye
 ```
+
+### PostgreSQL Extension Setup
+
+This library requires the [pg_textsearch](https://github.com/timescale/pg_textsearch) extension installed on your PostgreSQL server:
+
+```bash
+# Install build dependencies
+apt-get install build-essential git postgresql-server-dev-17
+
+# Clone and build
+git clone https://github.com/timescale/pg_textsearch.git
+cd pg_textsearch
+make && make install
+```
+
+The extension is automatically enabled via Django migrations when you run `python manage.py migrate`.
+
+See the [pg_textsearch repository](https://github.com/timescale/pg_textsearch) for detailed installation instructions.
 
 Add to `INSTALLED_APPS`:
 
