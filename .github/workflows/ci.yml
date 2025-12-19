@@ -11,64 +11,84 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
+      - uses: astral-sh/ruff-action@v3
+        with:
+          version: "latest"
+      - name: Lint and format with ruff
+        run: |
+          ruff check src tests
+          run: ruff format src tests
 
-      - name: Set up Python
-        run: uv python install 3.12
-
-      - name: Install dependencies
-        run: uv sync --all-extras
-
-      - name: Check formatting with black
-        run: uv run black --check src tests
-
-      - name: Lint with ruff
-        run: uv run ruff check src tests
 
   unit-tests:
-    name: Unit Tests (Python ${{ matrix.python-version }})
+    name: Unit Tests (Python ${{ matrix.python-version }}, Django ${{ matrix.django-version }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        django-version:
+          - "django==4.2"
+          - "django==5.2"
+          - "django==6.0"
+        # test against django's main branch
+        include: 
+          - python-version: '3.14'
+            django-version: "git+https://github.com/django/django.git@main#egg=Django"
+            experimental: true
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
+      - uses: actions/checkout@v5
 
       - name: Set up Python ${{ matrix.python-version }}
-        run: uv python install ${{ matrix.python-version }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
 
       - name: Install dependencies
-        run: uv sync --all-extras
+        run: |
+          uv sync --all-extras
+          uv pip install ${{ matrix.django-version }}
+
+
 
       - name: Run unit tests
         run: uv run pytest tests/unit -v --cov=src/django_pg_textsearch --cov-report=xml
 
       - name: Upload coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         if: matrix.python-version == '3.12'
         with:
           files: ./coverage.xml
           fail_ci_if_error: false
 
   integration-tests:
-    name: Integration Tests (Django ${{ matrix.django-version }})
+    name: Integration Tests (Python ${{ matrix.python-version }}, Django ${{ matrix.django-version }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        django-version: ["5.0", "5.1"]
-        python-version: ["3.12"]
+        django-version:
+          - "django==4.2"
+          - "django==5.2"
+          - "django==6.0"
+        python-version: ["3.12", "3.13", "3.14"]
+
+        include: 
+          - python-version: '3.14'
+            django-version: "git+https://github.com/django/django.git@main#egg=Django"
+            experimental: true
+
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Build PostgreSQL with pg_textsearch
         run: |
@@ -99,16 +119,21 @@ jobs:
           docker exec postgres psql -U postgres -d django_pg_textsearch_test -c "CREATE EXTENSION IF NOT EXISTS pg_textsearch;"
           docker exec postgres psql -U postgres -d django_pg_textsearch_test -c "SELECT * FROM pg_extension WHERE extname = 'pg_textsearch';"
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-
       - name: Set up Python ${{ matrix.python-version }}
-        run: uv python install ${{ matrix.python-version }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
 
       - name: Install dependencies
         run: |
           uv sync --all-extras
-          uv pip install "django==${{ matrix.django-version }}.*"
+          uv pip install ${{ matrix.django-version }}
 
       - name: Run integration tests
         env:
