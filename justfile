@@ -6,7 +6,7 @@ default:
 
 # Install the package in development mode
 install:
-    uv sync --all-extras
+    uv sync --all-extras --all-groups
 
 # Run all tests
 test:
@@ -30,11 +30,11 @@ test-file file:
 
 # Format code with black
 fmt:
-    uv run black src tests
+    uv run ruff format src tests
 
 # Check formatting without modifying
 fmt-check:
-    uv run black --check src tests
+    uv run ruff format --check src tests
 
 # Lint with ruff
 lint:
