@@ -54,7 +54,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv sync --all-extras
+          uv sync --all-groups
           uv pip install ${{ matrix.django-version }}
 
 
@@ -132,7 +132,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv sync --all-extras
+          uv sync --all-groups
           uv pip install ${{ matrix.django-version }}
 
       - name: Run integration tests
