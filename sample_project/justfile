@@ -7,10 +7,8 @@ default:
 # Start PostgreSQL with pg_textsearch
 up:
     docker compose up -d
-    @echo "Waiting for PostgreSQL..."
-    @sleep 5
-    docker compose exec db psql -U postgres -d sample_db -c "CREATE EXTENSION IF NOT EXISTS pg_textsearch;" || true
 
+    
 # Stop PostgreSQL
 down:
     docker compose down
