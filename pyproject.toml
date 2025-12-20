@@ -29,7 +29,7 @@ keywords = ["django", "postgresql", "bm25", "full-text-search", "search", "elast
 dependencies = [
     "django>=4.2,!=5.0.*,!=5.1.*",
     "django-cmd>=2.7",
-    "psycopg[binary]>=3.0",
+    "psycopg>=3.0",
 ]
 
 [dependency-groups]
